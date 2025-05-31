@@ -42,13 +42,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-next.config.ts
-eslint.config.ts
-prettier.config.ts
-postcss.config.mjs
-
-# tailwind
-tailwind.config.ts
 
 # personal
 /docs
+
+# clerk
+.clerk
