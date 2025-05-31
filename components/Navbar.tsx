@@ -14,16 +14,16 @@ const Navbar = () => {
           </Link>
           <div className="flex items-center gap-6">
             <Link
-              href="/notes"
-              className="text-base text-gray-700 hover:text-gray-900"
-            >
-              Notes
-            </Link>
-            <Link
               href="/exams"
               className="text-base text-gray-700 hover:text-gray-900"
             >
               Practice
+            </Link>
+            <Link
+              href="/notes"
+              className="text-base text-gray-700 hover:text-gray-900"
+            >
+              Notes
             </Link>
           </div>
         </div>
