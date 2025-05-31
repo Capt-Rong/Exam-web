@@ -260,7 +260,7 @@ const SessionPage = () => {
                 onClick={() =>
                   alert("End of test - Submit logic to be implemented")
                 }
-                className="px-6 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700"
+                className="px-6 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 hover:cursor-pointer"
               >
                 Submit Test
               </button>

@@ -7,6 +7,7 @@ const TestSubjectPanel: React.FC<TestSubjectPanelProps> = ({
   subjectName,
   initialDurationInSeconds,
   onTimeUp,
+  userScore,
 }) => {
   const [remainingTime, setRemainingTime] = useState(initialDurationInSeconds);
 
@@ -56,16 +57,23 @@ const TestSubjectPanel: React.FC<TestSubjectPanelProps> = ({
           <span className="font-semibold text-gray-700">科目名稱:</span>
           <span className="ml-2 text-gray-600">{subjectName}</span>
         </div>
-        <div>
-          <span className="font-semibold text-gray-700">剩餘時間:</span>
-          <span
-            className={`ml-2 font-bold ${
-              remainingTime < 600 ? "text-red-500" : "text-gray-800"
-            }`}
-          >
-            {formatTime(remainingTime)}
-          </span>
-        </div>
+        {typeof userScore === "number" ? (
+          <div>
+            <span className="font-semibold text-gray-700">得分:</span>
+            <span className="ml-2 text-gray-600 font-bold">{userScore}</span>
+          </div>
+        ) : (
+          <div>
+            <span className="font-semibold text-gray-700">剩餘時間:</span>
+            <span
+              className={`ml-2 font-bold ${
+                remainingTime < 600 ? "text-red-500" : "text-gray-800"
+              }`}
+            >
+              {formatTime(remainingTime)}
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );

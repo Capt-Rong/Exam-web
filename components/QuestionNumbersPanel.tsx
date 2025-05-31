@@ -19,6 +19,12 @@ const QuestionNumbersPanel: React.FC<QuestionNumbersPanelProps> = ({
           if (i === currentQuestionIndex) {
             bgColor = "bg-blue-500 hover:bg-blue-600";
             textColor = "text-white";
+          } else if (status === "correct") {
+            bgColor = "bg-green-500 hover:bg-green-700";
+            textColor = "text-white";
+          } else if (status === "incorrect") {
+            bgColor = "bg-red-500 hover:bg-red-700";
+            textColor = "text-white";
           } else if (status === "answered") {
             bgColor = "bg-green-200 hover:bg-green-300";
             textColor = "text-green-800";

@@ -9,11 +9,18 @@ export interface SubjectCardProps {
 }
 
 //questionNumbersPanel
+export type QuestionStatus =
+  | "unanswered"
+  | "answered"
+  | "flagged"
+  | "correct"
+  | "incorrect";
+
 export interface QuestionNumbersPanelProps {
   totalQuestions: number;
   currentQuestionIndex: number;
   onQuestionSelect: (index: number) => void;
-  questionsStatus?: Array<"answered" | "unanswered" | "flagged">; // Optional for advanced status later
+  questionsStatus?: QuestionStatus[];
 }
 
 //testSubjectPanel
@@ -22,7 +29,8 @@ export interface TestSubjectPanelProps {
   categoryName: string;
   subjectName: string;
   initialDurationInSeconds: number; // Duration in seconds
-  onTimeUp?: () => void; // Callback when time is up
+  onTimeUp?: () => void; // Made optional as it's not used in result page
+  userScore?: number; // Added userScore
 }
 
 //questionDisplay
@@ -37,8 +45,10 @@ export interface QuestionDisplayProps {
   options: QuestionOptions;
   selectedOptionKey: string | null;
   onOptionSelect: (optionKey: string) => void;
-  isSubmitted?: boolean; // Optional: to disable options after submission
-  correctAnswerKey?: string | null; // Optional: to show correct answer after submission
+  isSubmitted?: boolean; // Or use a more general mode flag
+  correctAnswerKey?: string; // To show correct answer after submission or in review
+  explanation?: string; // To show explanation
+  isResultMode?: boolean; // Explicit flag for result display
 }
 
 // sessionPage
@@ -48,7 +58,7 @@ export interface Question {
   content: string;
   options: { [key: string]: string };
   correct_answer: string;
-  explanation?: string;
+  explanation?: string; // Added explanation field
 }
 
 export interface TestSessionData {

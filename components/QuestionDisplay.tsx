@@ -1,5 +1,6 @@
-import { QuestionDisplayProps } from "@/types";
 import React from "react";
+import { QuestionDisplayProps } from "@/types";
+import { CheckCircle, XCircle } from "lucide-react";
 
 const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
   questionNumber,
@@ -7,57 +8,80 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
   options,
   selectedOptionKey,
   onOptionSelect,
-  isSubmitted = false,
-  correctAnswerKey = null,
+  isResultMode,
+  correctAnswerKey,
+  explanation,
 }) => {
-  const optionEntries = Object.entries(options);
-
   return (
-    <div className="p-6 bg-white rounded-lg shadow">
-      <h2 className="text-xl font-semibold text-gray-800 mb-1">
+    <div className="p-1 flex-grow flex flex-col">
+      <h2 className="text-xl font-semibold mb-1 text-gray-800">
         Question {questionNumber}
       </h2>
-      <p className="text-gray-700 mb-6 leading-relaxed whitespace-pre-line">
+      <p
+        className="text-gray-700 mb-6 whitespace-pre-line leading-relaxed"
+        style={{ fontFamily: "inherit" }}
+      >
         {questionContent}
       </p>
-
-      <div className="space-y-3">
-        {optionEntries.map(([key, text]) => {
+      <div className="space-y-3 flex-grow">
+        {Object.entries(options).map(([key, value]) => {
           const isSelected = selectedOptionKey === key;
-          let buttonStyle =
-            "bg-white hover:bg-gray-100 border-gray-300 text-gray-700 hover:cursor-pointer hover:text-blue-500";
-          let indicator = null;
+          const isCorrect = correctAnswerKey === key;
+          const isUserSelectionCorrect = isSelected && isCorrect;
+          const isUserSelectionIncorrect =
+            isSelected && !isCorrect && correctAnswerKey !== null;
 
-          if (isSubmitted && correctAnswerKey) {
-            if (key === correctAnswerKey) {
-              buttonStyle = "bg-green-100 border-green-400 text-green-800";
-              indicator = (
-                <span className="text-green-600 ml-2">✓ Correct</span>
-              );
-            } else if (isSelected && key !== correctAnswerKey) {
-              buttonStyle = "bg-red-100 border-red-400 text-red-800";
-              indicator = (
-                <span className="text-red-600 ml-2">✗ Incorrect</span>
-              );
+          let buttonStyle = "border-gray-300 hover:bg-gray-100";
+          if (isResultMode) {
+            if (isCorrect) {
+              buttonStyle = "border-green-500 bg-green-50 text-green-700";
+            } else if (isSelected && !isCorrect) {
+              buttonStyle = "border-red-500 bg-red-50 text-red-700";
+            } else {
+              buttonStyle = "border-gray-300 text-gray-500";
             }
           } else if (isSelected) {
-            buttonStyle = "bg-blue-500 border-blue-500 text-white";
+            buttonStyle = "border-blue-500 bg-blue-50 ring-2 ring-blue-400";
           }
 
           return (
             <button
               key={key}
-              onClick={() => !isSubmitted && onOptionSelect(key)}
-              disabled={isSubmitted}
-              className={`w-full flex items-center p-4 text-left rounded-md border transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-400 ${buttonStyle}`}
+              onClick={() => !isResultMode && onOptionSelect(key)}
+              disabled={isResultMode}
+              className={`w-full text-left p-4 border rounded-lg transition-all duration-150 focus:outline-none flex justify-between items-center ${buttonStyle} ${
+                isResultMode ? "cursor-default" : "cursor-pointer"
+              }`}
             >
-              <span className="font-medium mr-3">{key}.</span>
-              <span className="flex-1">{text}</span>
-              {indicator}
+              <span className="flex-1">
+                <span className="font-medium mr-2">{key}.</span>
+                {value}
+              </span>
+              {isResultMode && isSelected && isUserSelectionCorrect && (
+                <CheckCircle className="text-green-500 ml-2" />
+              )}
+              {isResultMode && isUserSelectionIncorrect && (
+                <XCircle className="text-red-500 ml-2" />
+              )}
             </button>
           );
         })}
       </div>
+      {isResultMode && correctAnswerKey && (
+        <div className="mt-6 pt-4 border-t border-gray-200">
+          <h3 className="text-md font-semibold text-gray-700 mb-2">
+            Correct Answer: {correctAnswerKey}
+          </h3>
+          {explanation && (
+            <div className="p-3 bg-sky-50 rounded-md text-sky-700 text-sm">
+              <p className="font-semibold mb-1">Explanation:</p>
+              <p className="whitespace-pre-line leading-relaxed">
+                {explanation}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
