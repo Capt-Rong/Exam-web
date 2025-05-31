@@ -23,7 +23,7 @@ const Navbar = () => {
               href="/notes"
               className="text-base text-gray-700 hover:text-gray-900"
             >
-              Notes
+              Learning
             </Link>
           </div>
         </div>
