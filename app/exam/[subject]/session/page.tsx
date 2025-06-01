@@ -1,81 +1,97 @@
 import React from "react";
 import Link from "next/link";
+import { createClient } from "../../../../lib/supabase/server"; // Adjusted path
+import { cookies } from "next/headers";
+import { notFound } from "next/navigation"; // To handle case where subject is not found
 
-interface Subject {
+// Interface for the test data we expect from Supabase
+interface Test {
   id: string;
   name: string;
-  description: string;
+  description: string | null;
+  // duration_in_seconds: number; // Can be added if needed for display
 }
 
-const subjectsData: Subject[] = [
-  {
-    id: "111-1-mathematics",
-    name: "111-1 Biochemistry",
-    description: "Biochemistry",
-  },
-  {
-    id: "111-2-physics",
-    name: "111-2 Biochemistry",
-    description: "Biochemistry",
-  },
-  {
-    id: "110-1-chemistry",
-    name: "110-1 Biochemistry",
-    description: "Biochemistry",
-  },
-  {
-    id: "110-2-biology",
-    name: "110-2 Biochemistry",
-    description: "Biochemistry",
-  },
-  {
-    id: "109-1-history",
-    name: "109-1 Biochemistry",
-    description: "Biochemistry",
-  },
-  {
-    id: "109-2-geography",
-    name: "109-2 Biochemistry",
-    description: "Biochemistry",
-  },
-];
-
-const ExamSubjectSessionPage = ({
+const ExamSessionSelectionPage = async ({
+  // Changed to async function
   params,
 }: {
-  params: { subject: string };
+  params: { subject: string }; // subject here is the slug
 }) => {
-  const currentSubject = params.subject;
+  const cookieStore = cookies();
+  const supabase = createClient(cookieStore);
+  const currentSubjectSlug = params.subject;
+
+  // 1. Fetch the subject_id based on the slug
+  const { data: subjectData, error: subjectError } = await supabase
+    .from("subjects")
+    .select("id, name")
+    .eq("slug", currentSubjectSlug)
+    .single(); // We expect only one subject for a given slug
+
+  if (subjectError || !subjectData) {
+    console.error(
+      `Error fetching subject with slug ${currentSubjectSlug}:`,
+      subjectError
+    );
+    notFound(); // Or return a custom error component
+  }
+
+  // 2. Fetch tests for the obtained subject_id
+  const { data: testsData, error: testsError } = await supabase
+    .from("tests")
+    .select("id, name, description")
+    .eq("subject_id", subjectData.id)
+    .order("created_at", { ascending: false }); // Show newest tests first
+
+  const tests: Test[] = testsData as Test[]; // Explicitly type testsData
+
+  if (testsError) {
+    console.error(
+      `Error fetching tests for subject ${subjectData.name}:`,
+      testsError
+    );
+    // Handle error, e.g., show a message to the user
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-2">
-        Test Sessions for{" "}
-        {currentSubject.charAt(0).toUpperCase() + currentSubject.slice(1)}
+        Test Sessions for {subjectData.name} {/* Display actual subject name */}
       </h1>
       <p className="text-gray-500 mb-8">
         Please select a test session to start.
       </p>
-      <div className="space-y-6">
-        {subjectsData.map((subjectSession) => (
-          <div
-            key={subjectSession.id}
-            className="bg-white shadow-md rounded-lg p-6 flex justify-between items-center"
-          >
-            <div>
-              <h2 className="text-xl font-semibold">{subjectSession.name}</h2>
-              <p className="text-gray-600 mt-1">{subjectSession.description}</p>
-            </div>
-            <Link
-              href={`/exam/${currentSubject}/session/${subjectSession.id}`}
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+      {tests && tests.length > 0 ? (
+        <div className="space-y-6">
+          {tests.map((testSession) => (
+            <div
+              key={testSession.id}
+              className="bg-white shadow-md rounded-lg p-6 flex justify-between items-center"
             >
-              Start Test
-            </Link>
-          </div>
-        ))}
-      </div>
-      {/* Pagination (optional, can be implemented later) */}
+              <div>
+                <h2 className="text-xl font-semibold">{testSession.name}</h2>
+                {testSession.description && (
+                  <p className="text-gray-600 mt-1">
+                    {testSession.description}
+                  </p>
+                )}
+              </div>
+              <Link
+                href={`/exam/${currentSubjectSlug}/session/${testSession.id}`}
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors duration-150"
+              >
+                Start Test
+              </Link>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="text-gray-700">
+          No test sessions available for this subject at the moment.
+        </p>
+      )}
+      {/* Pagination (remains optional and would need further implementation if tests are numerous) */}
       <div className="mt-8 flex justify-center">
         <nav aria-label="Page navigation">
           <ul className="inline-flex items-center -space-x-px">
@@ -125,4 +141,4 @@ const ExamSubjectSessionPage = ({
   );
 };
 
-export default ExamSubjectSessionPage;
+export default ExamSessionSelectionPage;
