@@ -2,15 +2,20 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
-import type { Session } from "@supabase/supabase-js";
+import { createBrowserClient } from "@supabase/ssr";
+import type { Session, AuthChangeEvent } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation"; // For redirecting after logout
 
 const Navbar = () => {
   const navbarRef = useRef<HTMLElement>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const supabase = createClientComponentClient();
   const router = useRouter();
+
+  // Initialize Supabase client for browser
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 
   useEffect(() => {
     const updateNavbarHeight = () => {
@@ -39,21 +44,29 @@ const Navbar = () => {
 
     const {
       data: { subscription: authSubscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
+    } = supabase.auth.onAuthStateChange(
+      (event: AuthChangeEvent, session: Session | null) => {
+        setSession(session);
+        // Optional: handle different auth events if needed
+        // console.log('Auth event:', event);
+      }
+    );
 
     return () => {
       window.removeEventListener("resize", updateNavbarHeight);
       authSubscription?.unsubscribe();
     };
-  }, [supabase, supabase.auth]);
+  }, [supabase]);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setSession(null);
-    router.push("/"); // Redirect to homepage after logout
-    router.refresh(); // Ensure server components re-render if needed
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error("Error logging out:", error);
+    } else {
+      setSession(null);
+      router.push("/"); // Redirect to homepage after logout
+      router.refresh(); // Ensure server components re-render if needed
+    }
   };
 
   return (
