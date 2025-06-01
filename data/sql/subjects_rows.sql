@@ -1,1 +1,0 @@
-INSERT INTO "public"."subjects" ("id", "name", "slug") VALUES ('5d2cbf8e-7f7a-47aa-9da6-1a5a84349d9b', 'Hematology', 'hematology'), ('956ef29f-3f94-44c9-896b-0eba919feb2b', 'Microbiology', 'microbiology'), ('eef3dcfb-3de8-422f-8943-bab3cae7a832', 'Biochemistry', 'biochemistry');
