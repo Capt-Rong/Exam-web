@@ -100,7 +100,20 @@ export default function LoginPage() {
             />
           </div>
 
-          {error && <p className="text-sm text-red-600 text-center">{error}</p>}
+          <div className="flex items-center justify-end">
+            <div className="text-sm">
+              <Link
+                href="/forgot-password"
+                className="font-medium text-blue-600 hover:text-blue-500"
+              >
+                Forgot your password?
+              </Link>
+            </div>
+          </div>
+
+          {error && (
+            <p className="text-sm text-red-600 text-center py-2">{error}</p>
+          )}
 
           <div>
             <button
