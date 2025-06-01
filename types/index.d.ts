@@ -32,6 +32,7 @@ export interface TestSubjectPanelProps {
   initialDurationInSeconds: number; // For session page, can be total duration
   onTimeUp?: () => void;
   usedTimeInSeconds?: number; // Added for displaying time taken on results page
+  isResultMode?: boolean; // Added to indicate if the panel is in a result display context
 }
 
 //questionDisplay
@@ -47,7 +48,7 @@ export interface QuestionDisplayProps {
   selectedOptionKey: string | null;
   onOptionSelect: (optionKey: string) => void;
   isSubmitted?: boolean; // Or use a more general mode flag
-  correctAnswerKey?: string; // To show correct answer after submission or in review
+  correctAnswerKey?: string | string[]; // Can be a string or an array of strings
   explanation?: string; // To show explanation
   isResultMode?: boolean; // Explicit flag for result display
 }
@@ -90,4 +91,43 @@ export interface Heading {
   id: string;
   level: number;
   text: string;
+}
+
+// 應該在 types/index.ts 或類似檔案中
+export interface FetchedQuestion {
+  id: string;
+  content: string;
+  options: { [key: string]: string };
+  correct_answer_key: string[];
+  explanation?: string | null;
+  question_number?: number | null;
+}
+
+export interface TestInfo {
+  id: string;
+  testCode: string;
+  categoryName: string;
+  subjectName: string;
+  durationInSeconds: number;
+}
+
+export interface Question {
+  // 確保 Question 類型也存在且符合您的需求
+  id: string;
+  content: string;
+  options: { [key: string]: string };
+  correct_answer: string;
+  explanation?: string;
+}
+
+export interface QuestionNumbersPanelProps {
+  totalQuestions: number;
+  currentQuestionIndex: number;
+  onQuestionSelect: (index: number) => void;
+  questionsStatus?: Array<
+    "correct" | "incorrect" | "unanswered" | "answered" | "flagged"
+  >;
+  userScore?: number;
+  userAnswers?: { [questionId: string]: string }; // 確保這個存在
+  questions?: { id: string }[]; // 確保這個存在
 }

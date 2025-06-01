@@ -1,125 +1,145 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-// import { useParams } from "next/navigation"; // Removed as params are passed directly
-import { Menu } from "lucide-react"; // Icon for toggle button
+import React, { useState, useEffect, useCallback } from "react";
+import { Menu } from "lucide-react";
 import Link from "next/link";
 
 import QuestionNumbersPanel from "@/components/QuestionNumbersPanel";
 import TestSubjectPanel from "@/components/TestSubjectPanel";
 import QuestionDisplay from "@/components/QuestionDisplay";
-import { Question, TestSessionData } from "@/types";
-// import { createClient } from '@/lib/supabase/client'; // For client-side data fetching later
+// Ensure these types are correctly defined and exported from '@/types'
+import { FetchedQuestion, Question, TestInfo } from "@/types";
+import { createClient } from "@/lib/supabase/client";
 
-// MOCK DATA - REMOVE AND REPLACE WITH ACTUAL FETCHING
-const MOCK_QUESTIONS: Question[] = [
-  {
-    id: "q1",
-    content:
-      "某成年女性最近體檢發現有點貧血：血色素10 g/dL、MCV 72 fL，白血球和血小板數量皆正常。就貧血的原因而言，下列何者最不可能？",
-    options: {
-      A: "Iron deficiency anemia",
-      B: "Hereditary thalassemia",
-      C: "Anemia of chronic disorder",
-      D: "Pernicious anemia",
-    },
-    correct_answer: "D",
-  },
-  {
-    id: "q2",
-    content:
-      "某名中年男性因慢性咳嗽就診，胸部X光顯示肺部有模糊影，血液檢查顯示白血球升高：總白血球數為12,000/uL。以下哪種診斷最不可能？",
-    options: {
-      A: "Bacterial pneumonia",
-      B: "Tuberculosis",
-      C: "Lung cancer",
-      D: "Allergy related asthma",
-    },
-    correct_answer: "D",
-  },
-  // Add more mock questions up to 80 if needed for testing QuestionNumbersPanel
-];
-
-for (let i = 3; i <= 80; i++) {
-  MOCK_QUESTIONS.push({
-    id: `q${i}`,
-    content: `This is question ${i}. What is the answer?\nSecond line of the question content.`,
-    options: {
-      A: `Option A for Q${i}`,
-      B: `Option B for Q${i}`,
-      C: `Option C for Q${i}`,
-      D: `Option D for Q${i}`,
-    },
-    correct_answer: "A",
-  });
-}
-
-const MOCK_SESSION_DATA: TestSessionData = {
-  id: "mocksession123",
-  testCode: "2308",
-  categoryName: "醫事檢驗師",
-  subjectName: "臨床血液學與血庫學",
-  durationInSeconds: 1 * 60 * 60, // 1 hour
-  questions: MOCK_QUESTIONS,
+// Helper function to transform DB questions (FetchedQuestion) to display format (Question)
+const transformFetchedQuestion = (fq: FetchedQuestion): Question => {
+  // The 'correct_answer' field in the original MOCK_QUESTIONS was a single string.
+  // The DB 'correct_answer_key' is string[].
+  // For now, we'll take the first key as the 'correct_answer' for the Question type.
+  // This might need adjustment if QuestionDisplay is to handle multiple correct answers for display logic.
+  return {
+    id: fq.id,
+    content: fq.content,
+    options: fq.options, // Assuming fq.options is already in the correct {key: string} format
+    correct_answer: fq.correct_answer_key?.[0] || "", // Take the first answer key
+    explanation: fq.explanation || undefined, // Ensure explanation can be undefined
+  };
 };
-// END MOCK DATA
 
 const ExamTakingPage = ({
   params,
 }: {
-  params: { subject: string; id: string };
+  params: { subject: string; id: string }; // id here is test_id
 }) => {
-  const { subject, id } = params; // subject and id are now from props
+  const { subject: subjectSlug, id: testId } = params;
+  const supabase = createClient();
 
-  // const supabase = createClient(); // Initialize Supabase client if needed for fetching
-  const [sessionData, setSessionData] = useState<TestSessionData | null>(
-    MOCK_SESSION_DATA
-  ); // Using mock data for now
+  const [testInfo, setTestInfo] = useState<TestInfo | null>(null);
+  const [questions, setQuestions] = useState<Question[]>([]); // Holds Question[] for display
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState<{
-    [questionId: string]: string;
+    [questionId: string]: string; // Store selected option key, e.g., "A"
   }>({});
   const [isLoading, setIsLoading] = useState(true);
-  const [isPanelOpen, setIsPanelOpen] = useState(true); // State for panel visibility, true by default on larger screens
+  const [isPanelOpen, setIsPanelOpen] = useState(true); // Default to open on larger screens
+  const [error, setError] = useState<string | null>(null);
+  const [startTime, setStartTime] = useState<Date | null>(null);
+
+  const loadExamData = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      // 1. Fetch test details (name, duration, subject_id)
+      const { data: testDetailsData, error: testDetailsError } = await supabase
+        .from("tests")
+        .select("name, duration_in_seconds, subject_id")
+        .eq("id", testId)
+        .single();
+
+      if (testDetailsError) throw testDetailsError;
+      if (!testDetailsData) throw new Error("Test not found.");
+
+      // 2. Fetch subject name using subject_id from testDetailsData
+      let subjectNameDisplay = subjectSlug; // Fallback to slug
+      if (testDetailsData.subject_id) {
+        const { data: subjectDetails, error: subjectDetailsError } =
+          await supabase
+            .from("subjects")
+            .select("name")
+            .eq("id", testDetailsData.subject_id)
+            .single();
+        if (subjectDetailsError) {
+          console.warn(
+            "Could not fetch subject details:",
+            subjectDetailsError.message
+          );
+        } else if (subjectDetails) {
+          subjectNameDisplay = subjectDetails.name;
+        }
+      }
+
+      setTestInfo({
+        id: testId,
+        testCode: testId.substring(0, 7), // Example: use part of UUID as testCode
+        categoryName: "醫事檢驗師", // Placeholder, consider fetching if dynamic
+        subjectName: subjectNameDisplay,
+        durationInSeconds: testDetailsData.duration_in_seconds,
+      });
+
+      // 3. Fetch questions for the test
+      const { data: fetchedQuestionsData, error: questionsError } =
+        await supabase
+          .from("questions")
+          .select(
+            "id, content, options, explanation, correct_answer_key, question_number"
+          )
+          .eq("test_id", testId)
+          .order("question_number", { ascending: true });
+
+      if (questionsError) throw questionsError;
+      if (!fetchedQuestionsData || fetchedQuestionsData.length === 0) {
+        throw new Error("No questions found for this test.");
+      }
+
+      const formattedQuestions = fetchedQuestionsData.map(
+        transformFetchedQuestion
+      );
+      setQuestions(formattedQuestions);
+      setStartTime(new Date()); // Record start time
+    } catch (e: unknown) {
+      console.error("Error loading exam data:", e);
+      if (e instanceof Error) {
+        setError(e.message);
+      } else if (typeof e === "string") {
+        setError(e);
+      } else {
+        setError("Failed to load exam data due to an unknown error.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [testId, supabase, subjectSlug]);
 
   useEffect(() => {
-    // Initialize panel visibility based on screen size
+    loadExamData();
+  }, [loadExamData]);
+
+  useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 768) {
-        // md breakpoint
         setIsPanelOpen(false);
       } else {
         setIsPanelOpen(true);
       }
     };
-    handleResize(); // Set initial state
+    handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  useEffect(() => {
-    // TODO: Fetch actual session data based on sessionId
-    // For now, we just use mock data and simulate a load
-    const loadData = async () => {
-      setIsLoading(true);
-      // Simulating API call
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      // const { data, error } = await supabase.from('test_sessions').select('*, questions(*)').eq('id', sessionId).single();
-      // if (error) { console.error('Error fetching session:', error); setSessionData(null); }
-      // else { setSessionData(data); }
-      setSessionData(MOCK_SESSION_DATA); // Using mock data
-      setIsLoading(false);
-    };
-
-    if (id) {
-      loadData();
-    }
-  }, [id]);
-
   const handleQuestionSelect = (index: number) => {
     setCurrentQuestionIndex(index);
     if (window.innerWidth < 768) {
-      // Close panel on selection on small screens
       setIsPanelOpen(false);
     }
   };
@@ -132,10 +152,7 @@ const ExamTakingPage = ({
   };
 
   const goToNextQuestion = () => {
-    if (
-      sessionData &&
-      currentQuestionIndex < sessionData.questions.length - 1
-    ) {
+    if (questions && currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     }
   };
@@ -147,9 +164,21 @@ const ExamTakingPage = ({
   };
 
   const handleTimeUp = () => {
-    // TODO: Implement what happens when time is up (e.g., auto-submit, show results)
-    alert("Time is up! Auto-submitting...");
-    // Potentially navigate to results page or show a summary
+    // TODO: Implement actual submission logic (e.g., save to DB) before navigating
+    alert("Time is up! Navigating to results...");
+    // Temporary navigation, passing answers via URL (consider a more robust solution)
+    window.location.href = `/exam/${subjectSlug}/session/${testId}/result?user_answers=${encodeURIComponent(
+      JSON.stringify(userAnswers)
+    )}&start_time=${startTime?.toISOString()}`;
+  };
+
+  const handleSubmit = async () => {
+    // TODO: Implement actual submission logic (save to DB, calculate score server-side)
+    alert("Submitting test... (actual submission logic pending)");
+    // Temporary navigation
+    window.location.href = `/exam/${subjectSlug}/session/${testId}/result?user_answers=${encodeURIComponent(
+      JSON.stringify(userAnswers)
+    )}&start_time=${startTime?.toISOString()}`;
   };
 
   const togglePanel = () => {
@@ -164,128 +193,129 @@ const ExamTakingPage = ({
     );
   }
 
-  if (!sessionData) {
+  if (error) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <p>Error loading test session or session not found.</p>
+      <div className="flex flex-col justify-center items-center h-screen text-center">
+        <p className="text-red-500 text-xl mb-4">Error loading test:</p>
+        <p className="text-gray-700 mb-6">{error}</p>
+        <Link
+          href={`/exam/${subjectSlug}/session`}
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        >
+          Back to Test Selection
+        </Link>
       </div>
     );
   }
 
-  const currentQuestion = sessionData.questions[currentQuestionIndex];
+  if (!testInfo || questions.length === 0) {
+    return (
+      <div className="flex flex-col justify-center items-center h-screen text-center">
+        <p className="text-gray-700 text-xl mb-6">
+          Test data is not available or no questions found.
+        </p>
+        <Link
+          href={`/exam/${subjectSlug}/session`}
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        >
+          Back to Test Selection
+        </Link>
+      </div>
+    );
+  }
+
+  const currentQuestion = questions[currentQuestionIndex];
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-4">
-        Taking Exam: <span className="capitalize">{id.replace(/-/g, " ")}</span>
-      </h1>
-      <p className="text-xl text-gray-700 mb-2">
-        Subject Category:{" "}
-        <span className="capitalize">{subject.replace(/-/g, " ")}</span>
-      </p>
-      <div className="bg-white shadow-md rounded-lg p-6 min-h-[300px]">
-        <p className="text-gray-600">
-          This is where the exam questions, timer, and interactive elements will
-          go.
-        </p>
-        <p className="mt-4 text-sm text-gray-500">
-          (Exam ID: {id}, Subject: {subject})
-        </p>
-        <div className="flex flex-col h-screen bg-gray-100">
-          <header className="bg-white shadow-md p-4 flex justify-between items-center">
-            <button
+    <div className="flex flex-col h-screen bg-gray-100">
+      <header className="bg-white shadow-md p-4 flex justify-between items-center sticky top-0 z-40">
+        <button
+          onClick={togglePanel}
+          className="p-2 rounded-md md:hidden hover:bg-gray-200"
+          aria-label="Toggle question panel"
+        >
+          <Menu size={24} />
+        </button>
+        <h1 className="text-lg md:text-xl font-bold text-center text-gray-800 flex-grow truncate px-2">
+          {testInfo.subjectName} - {testInfo.testCode}
+        </h1>
+        {/* Invisible div to help center title when menu is present on mobile */}
+        <div className="w-8 h-8 md:hidden"></div>
+      </header>
+
+      <div className="flex flex-1 overflow-hidden p-2 md:p-4 gap-2 md:gap-4">
+        <aside
+          className={`fixed inset-y-0 left-0 z-30 w-60 sm:w-64 bg-gray-100 p-3 transform transition-transform duration-300 ease-in-out md:static md:w-1/4 lg:w-1/5 md:transform-none md:bg-transparent md:p-0 md:shadow-none md:rounded-none shadow-xl rounded-r-lg ${
+            isPanelOpen ? "translate-x-0" : "-translate-x-full"
+          } md:translate-x-0`}
+        >
+          {isPanelOpen && (
+            <div
               onClick={togglePanel}
-              className="p-2 rounded-md md:hidden hover:bg-gray-200"
-            >
-              <Menu size={24} />
-            </button>
-            <h1 className="text-xl md:text-2xl font-bold text-center text-gray-800 flex-grow md:text-center">
-              {sessionData.subjectName}
-            </h1>
-            <div className="w-8 md:hidden">
-              {/* Spacer for mobile to balance title */}
-            </div>
-          </header>
-
-          <div className="flex flex-1 overflow-hidden p-4 md:p-6 gap-4 md:gap-6">
-            {/* Left Panel: Question Numbers - conditionally rendered and styled */}
-            <aside
-              className={`fixed inset-y-0 left-0 z-30 w-64 bg-gray-100 p-4 transform transition-transform duration-300 ease-in-out md:static md:w-1/4 lg:w-1/5 md:transform-none md:bg-transparent md:p-0 md:shadow-none md:rounded-none shadow-xl rounded-r-lg ${
-                isPanelOpen ? "translate-x-0" : "-translate-x-full"
-              } md:translate-x-0`}
-            >
-              {/* Overlay for mobile to close panel on click outside */}
-              {isPanelOpen && (
-                <div
-                  onClick={togglePanel}
-                  className="fixed inset-0 bg-black opacity-25 z-20 md:hidden"
-                ></div>
-              )}
-              <div className="relative z-10 bg-gray-100 rounded-lg md:shadow-md h-full">
-                {" "}
-                {/* Ensure content is above overlay and has style */}
-                <QuestionNumbersPanel
-                  totalQuestions={sessionData.questions.length}
-                  currentQuestionIndex={currentQuestionIndex}
-                  onQuestionSelect={handleQuestionSelect}
-                  // TODO: Implement questionsStatus based on userAnswers or other flags
-                />
-              </div>
-            </aside>
-
-            {/* Right Panel: Test Info and Question */}
-            <main
-              className={`flex-1 flex flex-col h-full overflow-y-auto bg-white p-2 rounded-lg shadow transition-all duration-300 ease-in-out md:ml-0`}
-            >
-              <TestSubjectPanel
-                testCode={sessionData.testCode}
-                categoryName={sessionData.categoryName}
-                subjectName={sessionData.subjectName}
-                initialDurationInSeconds={sessionData.durationInSeconds}
-                onTimeUp={handleTimeUp}
-              />
-
-              {currentQuestion && (
-                <QuestionDisplay
-                  questionNumber={currentQuestionIndex + 1}
-                  questionContent={currentQuestion.content}
-                  options={currentQuestion.options}
-                  selectedOptionKey={userAnswers[currentQuestion.id] || null}
-                  onOptionSelect={(optionKey) =>
-                    handleOptionSelect(currentQuestion.id, optionKey)
-                  }
-                  // TODO: Add isSubmitted and correctAnswerKey logic later for review mode
-                />
-              )}
-
-              {/* Navigation Buttons */}
-              <div className="mt-auto pt-6 flex justify-between">
-                <button
-                  onClick={goToPreviousQuestion}
-                  disabled={currentQuestionIndex === 0}
-                  className="px-6 py-2 text-sm font-medium text-gray-700 bg-white rounded-md border border-gray-300 hover:bg-gray-50 disabled:opacity-50"
-                >
-                  Previous
-                </button>
-                {currentQuestionIndex < sessionData.questions.length - 1 ? (
-                  <button
-                    onClick={goToNextQuestion}
-                    className="px-6 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
-                  >
-                    Next
-                  </button>
-                ) : (
-                  <Link
-                    href={`/exam/${subject}/session/${id}/result`}
-                    className="px-6 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 hover:cursor-pointer"
-                  >
-                    Submit Test & View Results
-                  </Link>
-                )}
-              </div>
-            </main>
+              className="fixed inset-0 bg-black opacity-25 z-20 md:hidden"
+              aria-hidden="true"
+            ></div>
+          )}
+          <div className="relative z-10 bg-gray-100 rounded-lg md:shadow-md h-full flex flex-col">
+            {/* Pass questions with IDs for the panel to map answers correctly if needed */}
+            <QuestionNumbersPanel
+              totalQuestions={questions.length}
+              currentQuestionIndex={currentQuestionIndex}
+              onQuestionSelect={handleQuestionSelect}
+              userAnswers={userAnswers}
+              questions={questions.map((q) => ({ id: q.id }))} // Pass only id
+            />
           </div>
-        </div>
+        </aside>
+
+        <main className="flex-1 flex flex-col h-full overflow-y-auto bg-white p-3 md:p-6 rounded-lg shadow">
+          <TestSubjectPanel
+            testCode={testInfo.testCode}
+            categoryName={testInfo.categoryName}
+            subjectName={testInfo.subjectName}
+            initialDurationInSeconds={testInfo.durationInSeconds}
+            onTimeUp={handleTimeUp}
+          />
+
+          {currentQuestion && (
+            <QuestionDisplay
+              questionNumber={currentQuestionIndex + 1}
+              questionContent={currentQuestion.content}
+              options={currentQuestion.options}
+              selectedOptionKey={userAnswers[currentQuestion.id] || null}
+              onOptionSelect={(optionKey) =>
+                handleOptionSelect(currentQuestion.id, optionKey)
+              }
+              // correctAnswerKey={currentQuestion.correct_answer} // Pass for review mode later
+              // explanation={currentQuestion.explanation} // Pass for review mode later
+            />
+          )}
+
+          <div className="mt-auto pt-6 flex justify-between">
+            <button
+              onClick={goToPreviousQuestion}
+              disabled={currentQuestionIndex === 0}
+              className="px-5 py-2 text-sm font-medium text-gray-700 bg-white rounded-md border border-gray-300 hover:bg-gray-50 disabled:opacity-50"
+            >
+              Previous
+            </button>
+            {currentQuestionIndex < questions.length - 1 ? (
+              <button
+                onClick={goToNextQuestion}
+                className="px-5 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+              >
+                Next
+              </button>
+            ) : (
+              <button
+                onClick={handleSubmit}
+                className="px-5 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700"
+              >
+                Submit Test
+              </button>
+            )}
+          </div>
+        </main>
       </div>
     </div>
   );

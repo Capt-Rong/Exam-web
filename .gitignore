@@ -47,5 +47,5 @@ next-env.d.ts
 /docs
 /rules
 
-# clerk
-.clerk
+# Sentry Config File
+.env.sentry-build-plugin
