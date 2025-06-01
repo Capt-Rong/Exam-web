@@ -37,7 +37,8 @@ Let’s break it down using the Feynman method:
 this is a test
 \`\`\`
 
-⸻
+---
+
 
 # 🧪 What is a test_session?
 
@@ -69,8 +70,8 @@ Show progress	✅ Session-based stats	❌ No context
 RLS (per-user data)	✅ Secure with user_id	❌ All data is public or duplicated
 Multiple users	✅ Each has their own history	❌ Impossible to distinguish
 
-
-⸻
+---
+<hr />
 
 ## 💡 Real-World Analogy
 
@@ -81,7 +82,7 @@ Now imagine:
 	•	You take a test → you get your own answer sheet (test_answers)
 	•	That sheet is grouped into a folder for this test attempt (test_session)
 
-⸻
+---
 
 ## 🧩 Table Purposes
 

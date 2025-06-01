@@ -60,7 +60,7 @@ const NoteMainContent: React.FC<NoteMainContentProps> = ({
 
   return (
     <main className="w-2/3 min-h-screen p-6 lg:p-8">
-      <div className="prose sm:prose-m max-w-none">
+      <div className="prose max-w-none">
         <ReactMarkdown
           rehypePlugins={[
             [rehypeRaw, { passThrough: ["element"] }],

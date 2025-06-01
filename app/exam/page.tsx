@@ -22,20 +22,28 @@ export default async function PracticePage() {
       <Navbar />
       <section className="container mx-auto px-6 py-8">
         <h1 className="text-2xl font-bold text-gray-800 mb-8">
-          Practice Page - Questions
+          Choose a Subject to Practice
         </h1>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-          {subjects.map((subject) => (
-            <SubjectCard
-              key={subject.name}
-              subjectName={subject.name}
-              description={subject.description}
-              bgColorClass={subject.bgColorClass}
-              textColorClass={subject.textColorClass}
-              buttonColorClass={subject.buttonColorClass}
-              href={subject.href}
-            />
-          ))}
+          {subjects.map((subject) => {
+            // Create a slug from the subject name for the URL
+            // e.g., "Clinical Biochemistry" becomes "clinical-biochemistry"
+            const subjectSlug = subject.name
+              .toLowerCase()
+              .replace(/\s+/g, "-")
+              .replace(/[^a-z0-9-]/g, "");
+            return (
+              <SubjectCard
+                key={subject.name}
+                subjectName={subject.name}
+                description={subject.description}
+                bgColorClass={subject.bgColorClass}
+                textColorClass={subject.textColorClass}
+                buttonColorClass={subject.buttonColorClass}
+                href={`/exam/${subjectSlug}/session`}
+              />
+            );
+          })}
         </div>
       </section>
       <Footer />
