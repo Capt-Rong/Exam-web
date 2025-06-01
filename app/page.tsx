@@ -2,11 +2,13 @@ import HeroSection from "@/components/HeroSection";
 import SubjectCard from "@/components/SubjectCard";
 import Link from "next/link";
 import { subjects } from "@/constants";
-
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 export default function HomePage() {
   return (
     <div className="flex flex-col min-h-screen ">
       <main className="flex-grow">
+        <Navbar />
         <HeroSection />
         <section className="py-12 md:py-16">
           <div className="container mx-auto px-6">
@@ -36,6 +38,7 @@ export default function HomePage() {
             </div>
           </div>
         </section>
+        <Footer />
       </main>
     </div>
   );

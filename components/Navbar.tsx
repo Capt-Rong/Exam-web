@@ -1,12 +1,42 @@
 "use client";
 
-import React from "react";
-import { SignInButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
+import React, { useEffect, useRef } from "react";
+import {
+  SignInButton,
+  SignedIn,
+  SignedOut,
+  UserButton,
+  ClerkProvider,
+} from "@clerk/nextjs";
 import Link from "next/link";
 
 const Navbar = () => {
+  const navbarRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const updateNavbarHeight = () => {
+      if (navbarRef.current) {
+        const height = navbarRef.current.offsetHeight;
+        document.documentElement.style.setProperty(
+          "--navbar-height",
+          `${height}px`
+        );
+      }
+    };
+
+    updateNavbarHeight(); // Initial measurement
+    window.addEventListener("resize", updateNavbarHeight);
+
+    return () => {
+      window.removeEventListener("resize", updateNavbarHeight);
+    };
+  }, []);
+
   return (
-    <header className="py-4 px-6 md:px-10 shadow-sm">
+    <header
+      ref={navbarRef}
+      className="py-2 md:px-2 shadow-md border-b border-gray-100"
+    >
       <div className="container mx-auto flex justify-between items-center">
         <div className="flex items-center gap-20">
           <Link href="/" className="text-2xl font-bold text-gray-800">
@@ -14,16 +44,16 @@ const Navbar = () => {
           </Link>
           <div className="flex items-center gap-6">
             <Link
-              href="/notes"
-              className="text-base text-gray-700 hover:text-gray-900"
-            >
-              Notes
-            </Link>
-            <Link
               href="/exams"
               className="text-base text-gray-700 hover:text-gray-900"
             >
               Practice
+            </Link>
+            <Link
+              href="/notes"
+              className="text-base text-gray-700 hover:text-gray-900"
+            >
+              Learning
             </Link>
           </div>
         </div>

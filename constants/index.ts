@@ -48,3 +48,54 @@ export const subjects = [
     href: "/exams/session/spectrology",
   },
 ];
+
+export const noteSubjects = [
+  {
+    name: "Pathology",
+    description: "Understand diseases and their effects on the body.",
+    bgColorClass: "bg-emerald-100",
+    textColorClass: "text-emerald-800",
+    buttonColorClass: "bg-emerald-600 hover:bg-emerald-700",
+    href: "/notes/pathology",
+  },
+  {
+    name: "Biochemistry",
+    description: "Explore the chemical processes within living organisms.",
+    bgColorClass: "bg-sky-100",
+    textColorClass: "text-sky-800",
+    buttonColorClass: "bg-sky-600 hover:bg-sky-700",
+    href: "/notes/biochemistry",
+  },
+  {
+    name: "Hematology",
+    description: "Study blood, blood-forming organs, and blood diseases.",
+    bgColorClass: "bg-rose-100",
+    textColorClass: "text-rose-800",
+    buttonColorClass: "bg-rose-600 hover:bg-rose-700",
+    href: "/notes/hematology",
+  },
+  {
+    name: "Immunology",
+    description: "Learn about the immune system and its functions.",
+    bgColorClass: "bg-purple-100",
+    textColorClass: "text-purple-800",
+    buttonColorClass: "bg-purple-600 hover:bg-purple-700",
+    href: "/notes/immunology",
+  },
+  {
+    name: "Microbiology",
+    description: "Discover the world of microorganisms.",
+    bgColorClass: "bg-amber-100",
+    textColorClass: "text-amber-800",
+    buttonColorClass: "bg-amber-600 hover:bg-amber-700",
+    href: "/notes/microbiology",
+  },
+  {
+    name: "Spectrology", // Assuming this is a relevant subject, adjust if needed
+    description: "Analyze matter and its properties using spectroscopy.",
+    bgColorClass: "bg-slate-100",
+    textColorClass: "text-slate-800",
+    buttonColorClass: "bg-slate-600 hover:bg-slate-700",
+    href: "/notes/spectrology",
+  },
+];
