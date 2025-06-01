@@ -32,6 +32,7 @@ export interface TestSubjectPanelProps {
   initialDurationInSeconds: number; // For session page, can be total duration
   onTimeUp?: () => void;
   usedTimeInSeconds?: number; // Added for displaying time taken on results page
+  isResultMode?: boolean; // Added to indicate if the panel is in a result display context
 }
 
 //questionDisplay

@@ -293,7 +293,7 @@ const ResultPage = () => {
             ) : (
               // Placeholder for alignment, or could be a "Back to Dashboard" button
               <Link
-                href={`/exam/${params.subject}/session/`} // Or a more relevant link like back to subject selection
+                href="/exam" // Or a more relevant link like back to subject selection
                 className="px-5 py-2 text-sm font-medium text-white bg-gray-500 rounded-md hover:bg-gray-600"
               >
                 Finish Review
