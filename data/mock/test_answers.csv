@@ -1,0 +1,4 @@
+id,session_id,question_id,selected_answer,is_correct,answered_at
+d735cbd5-e8a0-4a70-93b8-098e7432e0dd,009bd80c-3499-4cb7-babc-a3e095f5f7fb,b50f1bfb-4920-493e-b658-19ce79c00a9d,B,True,2025-06-01T07:34:38.705384
+57a2383d-7481-49d4-b3d4-80130a7c2d2b,009bd80c-3499-4cb7-babc-a3e095f5f7fb,886c207e-222e-427b-b797-f911f1c65f95,B,True,2025-06-01T07:34:38.705421
+b3c5a5fc-1fab-40a6-8f75-95a1978ea3b0,009bd80c-3499-4cb7-babc-a3e095f5f7fb,a82dda81-ed5c-40d8-8cd5-efafafae9b77,A,False,2025-06-01T07:34:38.705429
