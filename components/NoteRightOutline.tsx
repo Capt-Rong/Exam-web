@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import type { Heading } from "@/types";
 import { Switch } from "@/components/ui/switch";
+import { cn } from "@/lib/utils";
 
 interface NoteRightOutlineProps {
   headings: Heading[];

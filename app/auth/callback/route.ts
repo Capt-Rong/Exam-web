@@ -1,4 +1,4 @@
-import { createServerClient } from "@supabase/ssr";
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
@@ -16,10 +16,10 @@ export async function GET(request: NextRequest) {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         cookies: {
-          async get(name: string) {
-            return (await cookieStore).get(name)?.value;
+          get(name: string) {
+            return cookieStore.get(name)?.value;
           },
-          async set() {
+          set(name: string, value: string, options: CookieOptions) {
             // In Route Handlers, this attempts to set a cookie on the INCOMING request's
             // cookie store, which is read-only. This is generally a no-op or might error
             // if the underlying store strictly enforces read-only.
@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
             // Given @supabase/ssr design, middleware is the primary writer.
             // cookieStore.set(name, value, options); // This would error as cookieStore is Readonly
           },
-          async remove() {
+          remove(name: string, options: CookieOptions) {
             // Similar to set, this would be a no-op on a ReadonlyRequestCookies store.
             // cookieStore.delete(name, options); // This would error
           },
