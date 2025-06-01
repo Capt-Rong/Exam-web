@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 
 interface Subject {
   id: string;
@@ -9,57 +10,68 @@ interface Subject {
 const subjectsData: Subject[] = [
   {
     id: "111-1-mathematics",
-    name: "Mathematics",
-    description:
-      "Explore advanced mathematical concepts and problem-solving techniques.",
+    name: "111-1 Biochemistry",
+    description: "Biochemistry",
   },
   {
     id: "111-2-physics",
-    name: "Physics",
-    description:
-      "Dive into the world of physics and understand the laws of nature.",
+    name: "111-2 Biochemistry",
+    description: "Biochemistry",
   },
   {
     id: "110-1-chemistry",
-    name: "Chemistry",
-    description: "Study chemical reactions and the properties of matter.",
+    name: "110-1 Biochemistry",
+    description: "Biochemistry",
   },
   {
     id: "110-2-biology",
-    name: "Biology",
-    description: "Explore the science of life and living organisms.",
+    name: "110-2 Biochemistry",
+    description: "Biochemistry",
   },
   {
     id: "109-1-history",
-    name: "History",
-    description:
-      "Learn about historical events and their impact on the modern world.",
+    name: "109-1 Biochemistry",
+    description: "Biochemistry",
   },
   {
     id: "109-2-geography",
-    name: "Geography",
-    description:
-      "Understand the physical features of the Earth and human-environment interaction.",
+    name: "109-2 Biochemistry",
+    description: "Biochemistry",
   },
 ];
 
-const ExamSessionPage = () => {
+const ExamSubjectSessionPage = ({
+  params,
+}: {
+  params: { subject: string };
+}) => {
+  const currentSubject = params.subject;
+
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">Test Subjects</h1>
+      <h1 className="text-3xl font-bold mb-2">
+        Test Sessions for{" "}
+        {currentSubject.charAt(0).toUpperCase() + currentSubject.slice(1)}
+      </h1>
+      <p className="text-gray-500 mb-8">
+        Please select a test session to start.
+      </p>
       <div className="space-y-6">
-        {subjectsData.map((subject) => (
+        {subjectsData.map((subjectSession) => (
           <div
-            key={subject.id}
+            key={subjectSession.id}
             className="bg-white shadow-md rounded-lg p-6 flex justify-between items-center"
           >
             <div>
-              <h2 className="text-xl font-semibold">{subject.name}</h2>
-              <p className="text-gray-600 mt-1">{subject.description}</p>
+              <h2 className="text-xl font-semibold">{subjectSession.name}</h2>
+              <p className="text-gray-600 mt-1">{subjectSession.description}</p>
             </div>
-            <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            <Link
+              href={`/exam/${currentSubject}/session/${subjectSession.id}`}
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            >
               Start Test
-            </button>
+            </Link>
           </div>
         ))}
       </div>
@@ -104,20 +116,7 @@ const ExamSessionPage = () => {
               <a
                 href="#"
                 className="px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-              >
-                {/* <svg
-                  className="w-5 h-5"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                    clipRule="evenodd"
-                  ></path>
-                </svg> */}
-              </a>
+              ></a>
             </li>
           </ul>
         </nav>
@@ -126,4 +125,4 @@ const ExamSessionPage = () => {
   );
 };
 
-export default ExamSessionPage;
+export default ExamSubjectSessionPage;
