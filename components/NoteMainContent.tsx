@@ -1,17 +1,18 @@
 import React, { useEffect, useCallback } from "react";
-import type { Heading } from "@/types";
+import type { Node, Element, Text } from "unist";
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import rehypeSlug from "rehype-slug";
 import { visit } from "unist-util-visit"; // Utility to traverse the tree
+import { Heading } from "@/types";
 
 // Custom Rehype plugin to extract headings after slugs are generated
 const extractHeadingsPlugin = (options: {
   onHeadings: (headings: Heading[]) => void;
 }) => {
-  return (tree: any) => {
+  return (tree: Node) => {
     const headings: Heading[] = [];
-    visit(tree, "element", (node: any) => {
+    visit(tree, "element", (node: Element) => {
       if (
         node.tagName &&
         ["h1", "h2", "h3", "h4", "h5", "h6"].includes(node.tagName)
@@ -20,7 +21,7 @@ const extractHeadingsPlugin = (options: {
         if (node.properties && node.properties.id) {
           // Extract text content
           let textContent = "";
-          visit(node, "text", (textNode: any) => {
+          visit(node, "text", (textNode: Text) => {
             textContent += textNode.value;
           });
           headings.push({
