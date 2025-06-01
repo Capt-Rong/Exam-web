@@ -1,17 +1,16 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
-import {
-  SignInButton,
-  SignedIn,
-  SignedOut,
-  UserButton,
-  ClerkProvider,
-} from "@clerk/nextjs";
+import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import type { Session } from "@supabase/supabase-js";
+import { useRouter } from "next/navigation"; // For redirecting after logout
 
 const Navbar = () => {
   const navbarRef = useRef<HTMLElement>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const supabase = createClientComponentClient();
+  const router = useRouter();
 
   useEffect(() => {
     const updateNavbarHeight = () => {
@@ -27,10 +26,35 @@ const Navbar = () => {
     updateNavbarHeight(); // Initial measurement
     window.addEventListener("resize", updateNavbarHeight);
 
+    // Listen for auth changes
+    const getSession = async () => {
+      const { data, error } = await supabase.auth.getSession();
+      if (error) {
+        console.error("Error fetching session:", error);
+        return;
+      }
+      setSession(data.session);
+    };
+    getSession();
+
+    const {
+      data: { subscription: authSubscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
     return () => {
       window.removeEventListener("resize", updateNavbarHeight);
+      authSubscription?.unsubscribe();
     };
-  }, []);
+  }, [supabase, supabase.auth]);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setSession(null);
+    router.push("/"); // Redirect to homepage after logout
+    router.refresh(); // Ensure server components re-render if needed
+  };
 
   return (
     <header
@@ -58,22 +82,34 @@ const Navbar = () => {
           </div>
         </div>
         <nav className="flex items-center gap-4">
-          <SignedOut>
-            <SignInButton mode="modal">
-              <button className="px-4 py-2 text-sm font-medium text-gray-700 bg-white rounded-md border border-gray-300 hover:bg-gray-50">
-                Login
+          {session ? (
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-gray-700">
+                {session.user?.email}
+              </span>
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
+              >
+                Logout
               </button>
-            </SignInButton>
-            <Link
-              href="/sign-up"
-              className="px-4 py-2 text-sm font-medium text-white bg-gray-800 rounded-md hover:bg-gray-700"
-            >
-              Sign Up
-            </Link>
-          </SignedOut>
-          <SignedIn>
-            <UserButton />
-          </SignedIn>
+            </div>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white rounded-md border border-gray-300 hover:bg-gray-50"
+              >
+                Login
+              </Link>
+              <Link
+                href="/signup"
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+              >
+                Sign Up
+              </Link>
+            </>
+          )}
         </nav>
       </div>
     </header>
