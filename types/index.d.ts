@@ -21,6 +21,7 @@ export interface QuestionNumbersPanelProps {
   currentQuestionIndex: number;
   onQuestionSelect: (index: number) => void;
   questionsStatus?: QuestionStatus[];
+  userScore?: number; // Added userScore for display
 }
 
 //testSubjectPanel
@@ -28,9 +29,9 @@ export interface TestSubjectPanelProps {
   testCode: string;
   categoryName: string;
   subjectName: string;
-  initialDurationInSeconds: number; // Duration in seconds
-  onTimeUp?: () => void; // Made optional as it's not used in result page
-  userScore?: number; // Added userScore
+  initialDurationInSeconds: number; // For session page, can be total duration
+  onTimeUp?: () => void;
+  usedTimeInSeconds?: number; // Added for displaying time taken on results page
 }
 
 //questionDisplay
@@ -68,4 +69,25 @@ export interface TestSessionData {
   subjectName: string;
   durationInSeconds: number;
   questions: Question[];
+}
+
+// Note Page specific types
+export interface Note {
+  id: string;
+  title: string;
+  // slug?: string; // If using slugs for URLs
+  // content?: string; // Markdown content, could be fetched separately
+}
+
+export interface Chapter {
+  id: string;
+  title: string;
+  // slug?: string;
+  notes: Note[];
+}
+
+export interface Heading {
+  id: string;
+  level: number;
+  text: string;
 }

@@ -7,12 +7,14 @@ const TestSubjectPanel: React.FC<TestSubjectPanelProps> = ({
   subjectName,
   initialDurationInSeconds,
   onTimeUp,
-  userScore,
+  usedTimeInSeconds,
 }) => {
   const [remainingTime, setRemainingTime] = useState(initialDurationInSeconds);
 
-  // countdown timer
+  // countdown timer - only run if usedTimeInSeconds is not provided (i.e., on session page)
   useEffect(() => {
+    if (typeof usedTimeInSeconds === "number") return; // Don't run countdown on results page
+
     if (remainingTime <= 0) {
       if (onTimeUp) onTimeUp();
       return;
@@ -23,7 +25,7 @@ const TestSubjectPanel: React.FC<TestSubjectPanelProps> = ({
     }, 1000);
 
     return () => clearInterval(timerId);
-  }, [remainingTime, onTimeUp]);
+  }, [remainingTime, onTimeUp, usedTimeInSeconds]);
 
   // format time
   const formatTime = (totalSeconds: number) => {
@@ -57,23 +59,22 @@ const TestSubjectPanel: React.FC<TestSubjectPanelProps> = ({
           <span className="font-semibold text-gray-700">科目名稱:</span>
           <span className="ml-2 text-gray-600">{subjectName}</span>
         </div>
-        {typeof userScore === "number" ? (
-          <div>
-            <span className="font-semibold text-gray-700">得分:</span>
-            <span className="ml-2 text-gray-600 font-bold">{userScore}</span>
-          </div>
-        ) : (
-          <div>
-            <span className="font-semibold text-gray-700">剩餘時間:</span>
-            <span
-              className={`ml-2 font-bold ${
-                remainingTime < 600 ? "text-red-500" : "text-gray-800"
-              }`}
-            >
-              {formatTime(remainingTime)}
-            </span>
-          </div>
-        )}
+        <div>
+          <span className="font-semibold text-gray-700">
+            {typeof usedTimeInSeconds === "number" ? "使用時間:" : "剩餘時間:"}
+          </span>
+          <span
+            className={`ml-2 font-bold ${
+              typeof usedTimeInSeconds !== "number" && remainingTime < 600
+                ? "text-red-500"
+                : "text-gray-800"
+            }`}
+          >
+            {typeof usedTimeInSeconds === "number"
+              ? formatTime(usedTimeInSeconds)
+              : formatTime(remainingTime)}
+          </span>
+        </div>
       </div>
     </div>
   );

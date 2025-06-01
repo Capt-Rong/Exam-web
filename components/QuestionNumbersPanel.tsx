@@ -1,15 +1,25 @@
 import React from "react";
 import { QuestionNumbersPanelProps } from "@/types";
+import { cn } from "@/lib/utils";
 
 const QuestionNumbersPanel: React.FC<QuestionNumbersPanelProps> = ({
   totalQuestions,
   currentQuestionIndex,
   onQuestionSelect,
   questionsStatus = [],
+  userScore,
 }) => {
   return (
     <div className="p-4 bg-gray-100 rounded-lg shadow-md h-full overflow-y-auto">
-      <h3 className="text-lg font-semibold mb-4 text-gray-700">Questions</h3>
+      <h3 className="text-xl font-semibold mb-4 text-gray-700">Questions</h3>
+      <h2
+        className={cn(
+          "text-lg mb-4",
+          userScore && userScore >= 60 ? "text-green-500" : "text-red-500"
+        )}
+      >
+        Your Score: {userScore} / {totalQuestions}
+      </h2>
       <div className="grid grid-cols-5 gap-2">
         {Array.from({ length: totalQuestions }, (_, i) => {
           const status = questionsStatus[i];

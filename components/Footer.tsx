@@ -4,7 +4,7 @@ import { ArrowRight } from "lucide-react";
 
 const Footer = () => {
   return (
-    <footer className="bg-white border-t border-gray-100 mt-16 md:mt-24">
+    <footer className="bg-white border-t border-gray-100">
       <div className="container mx-auto px-6 py-8 flex flex-col md:flex-row justify-between items-center">
         <div className="flex gap-8 mb-4 md:mb-0">
           <Link href="/" className="text-sm text-gray-600 hover:text-gray-800">
