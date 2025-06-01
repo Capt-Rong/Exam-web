@@ -47,7 +47,7 @@ export interface QuestionDisplayProps {
   selectedOptionKey: string | null;
   onOptionSelect: (optionKey: string) => void;
   isSubmitted?: boolean; // Or use a more general mode flag
-  correctAnswerKey?: string; // To show correct answer after submission or in review
+  correctAnswerKey?: string | string[]; // Can be a string or an array of strings
   explanation?: string; // To show explanation
   isResultMode?: boolean; // Explicit flag for result display
 }
