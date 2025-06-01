@@ -91,3 +91,42 @@ export interface Heading {
   level: number;
   text: string;
 }
+
+// 應該在 types/index.ts 或類似檔案中
+export interface FetchedQuestion {
+  id: string;
+  content: string;
+  options: { [key: string]: string };
+  correct_answer_key: string[];
+  explanation?: string | null;
+  question_number?: number | null;
+}
+
+export interface TestInfo {
+  id: string;
+  testCode: string;
+  categoryName: string;
+  subjectName: string;
+  durationInSeconds: number;
+}
+
+export interface Question {
+  // 確保 Question 類型也存在且符合您的需求
+  id: string;
+  content: string;
+  options: { [key: string]: string };
+  correct_answer: string;
+  explanation?: string;
+}
+
+export interface QuestionNumbersPanelProps {
+  totalQuestions: number;
+  currentQuestionIndex: number;
+  onQuestionSelect: (index: number) => void;
+  questionsStatus?: Array<
+    "correct" | "incorrect" | "unanswered" | "answered" | "flagged"
+  >;
+  userScore?: number;
+  userAnswers?: { [questionId: string]: string }; // 確保這個存在
+  questions?: { id: string }[]; // 確保這個存在
+}
