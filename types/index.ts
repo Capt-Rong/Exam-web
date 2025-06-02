@@ -95,5 +95,7 @@ export interface Chapter {
   title: string;
   subject_id?: string; // Foreign key to subjects table
   order?: number;
+  parent_id?: string | null; // Optional: For hierarchical chapters
   notes: BasicNoteInfo[]; // Array of notes belonging to this chapter
+  subChapters?: Chapter[]; // Optional: For nested chapters
 }

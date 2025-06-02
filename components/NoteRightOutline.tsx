@@ -65,7 +65,7 @@ const NoteRightOutline: React.FC<NoteRightOutlineProps> = ({ headings }) => {
   return (
     <aside className="w-1/6 sticky top-[calc(var(--navbar-height)+16px)] right-2 h-fit p-4  rounded-lg border border-gray-200 shadow-sm text-sm bg-gray-50">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-base font-semibold sticky top-0  text-gray-800  bg-gray-50 hover:cursor-pointer hover:text-blue-600">
+        <h2 className="text-base font-semibold sticky top-0  text-gray-800  bg-gray-50 ">
           On this page
         </h2>
         <Switch onClick={handleSidebarToggle} />
