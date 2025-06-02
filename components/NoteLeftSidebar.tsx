@@ -15,6 +15,7 @@ interface ChapterNodeProps {
   subjectSlug: string;
   onNoteSelect: (noteId: string) => void;
   level: number;
+  indentSize?: number; // New prop for customizing indentation
 }
 
 const ChapterNode: React.FC<ChapterNodeProps> = ({
@@ -23,6 +24,7 @@ const ChapterNode: React.FC<ChapterNodeProps> = ({
   subjectSlug,
   onNoteSelect,
   level,
+  indentSize = 24, // Default indentation size
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -35,7 +37,7 @@ const ChapterNode: React.FC<ChapterNodeProps> = ({
     }
   };
 
-  const paddingLeft = level * 16;
+  const paddingLeft = level * indentSize;
 
   return (
     <li className="text-gray-700">
@@ -59,7 +61,7 @@ const ChapterNode: React.FC<ChapterNodeProps> = ({
       {hasNotes && (isExpanded || !hasSubChapters) && (
         <ul
           className="space-y-1"
-          style={{ paddingLeft: `${paddingLeft + 16}px` }}
+          style={{ paddingLeft: `${paddingLeft + indentSize}px` }}
         >
           {chapter.notes.map((note: BasicNoteInfo) => {
             const notePath = `/notes/${subjectSlug}/${note.id}`;
@@ -92,13 +94,14 @@ const ChapterNode: React.FC<ChapterNodeProps> = ({
               subjectSlug={subjectSlug}
               onNoteSelect={onNoteSelect}
               level={level + 1}
+              indentSize={indentSize}
             />
           ))}
         </ul>
       )}
       {!hasNotes && !hasSubChapters && level > 0 && (
         <p
-          style={{ paddingLeft: `${paddingLeft + 16}px` }}
+          style={{ paddingLeft: `${paddingLeft + indentSize}px` }}
           className="ml-2 text-xs text-gray-500 italic"
         >
           No content in this section.
@@ -129,6 +132,7 @@ const NoteLeftSidebar: React.FC<NoteLeftSidebarProps> = ({
               subjectSlug={subjectSlug}
               onNoteSelect={onNoteSelect}
               level={0}
+              indentSize={24} // Custom indentation size for the entire tree
             />
           ))}
         </ul>
