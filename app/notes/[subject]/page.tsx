@@ -65,7 +65,7 @@ const SubjectNotesDisplayPage = () => {
 
         const { data: chaptersData, error: chaptersFetchError } = await supabase
           .from("chapters")
-          .select("id, title, order")
+          .select("id, title, order, parent_id")
           .eq("subject_id", subjectData.id)
           .order("order", { ascending: true });
 
@@ -89,21 +89,61 @@ const SubjectNotesDisplayPage = () => {
                 `Error fetching notes for chapter ${chapter.title}:`,
                 notesError.message
               );
-              return { ...chapter, notes: [] };
+              return { ...chapter, notes: [], subChapters: [] };
             }
-            return { ...chapter, notes: (notesData as BasicNoteInfo[]) || [] };
+            return {
+              ...chapter,
+              notes: (notesData as BasicNoteInfo[]) || [],
+              subChapters: [],
+            };
           })
         );
-        setChapters(chaptersWithNotes);
+
+        // Build the chapter tree
+        const chapterMap: { [key: string]: Chapter } = {};
+        chaptersWithNotes.forEach((chapter) => {
+          chapterMap[chapter.id] = chapter;
+        });
+
+        const rootChapters: Chapter[] = [];
+        chaptersWithNotes.forEach((chapter) => {
+          if (chapter.parent_id && chapterMap[chapter.parent_id]) {
+            const parent = chapterMap[chapter.parent_id];
+            if (!parent.subChapters) {
+              parent.subChapters = [];
+            }
+            parent.subChapters.push(chapter);
+            // Sort subChapters by order if needed
+            parent.subChapters.sort((a, b) => (a.order || 0) - (b.order || 0));
+          } else {
+            rootChapters.push(chapter);
+          }
+        });
+        // Sort root chapters by order if needed
+        rootChapters.sort((a, b) => (a.order || 0) - (b.order || 0));
+
+        setChapters(rootChapters);
         setIsLoadingChapters(false);
 
         let firstNoteId: string | null = null;
-        for (const chap of chaptersWithNotes) {
-          if (chap.notes && chap.notes.length > 0) {
-            firstNoteId = chap.notes[0].id;
-            break;
+
+        // Function to recursively find the first note in the chapter tree
+        const findFirstNote = (chaptersToSearch: Chapter[]): string | null => {
+          for (const chap of chaptersToSearch) {
+            if (chap.notes && chap.notes.length > 0) {
+              return chap.notes[0].id;
+            }
+            if (chap.subChapters && chap.subChapters.length > 0) {
+              const noteIdInSub = findFirstNote(chap.subChapters);
+              if (noteIdInSub) {
+                return noteIdInSub;
+              }
+            }
           }
-        }
+          return null;
+        };
+
+        firstNoteId = findFirstNote(rootChapters);
 
         if (firstNoteId) {
           setActiveNoteId(firstNoteId);
