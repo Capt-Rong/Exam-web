@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import type { Chapter, BasicNoteInfo } from "@/types";
-import { ChevronRightIcon } from "@heroicons/react/24/solid";
 
 interface NoteLeftSidebarProps {
   chapters: Chapter[];
@@ -53,8 +52,21 @@ const ChapterNode: React.FC<ChapterNodeProps> = ({
               isExpanded ? "rotate-90" : ""
             }`}
           >
-            <ChevronRightIcon className="w-4 h-4" />
-          </span>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="size-4"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="m8.25 4.5 7.5 7.5-7.5 7.5"
+              />
+            </svg>
+          </span>  
         )}
       </div>
 
